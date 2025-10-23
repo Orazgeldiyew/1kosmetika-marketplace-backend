@@ -16,7 +16,8 @@ func SetupProductRoutes(r *gin.Engine, productHandler *handlers.ProductHandler) 
 		products.GET("/search", productHandler.SearchProducts)
 		products.GET("/categories", productHandler.GetCategories)
 		products.GET("/brands", productHandler.GetBrands)
-		
+		// ✅ Новый маршрут для загрузки фото
+		products.POST("/upload", handlers.UploadProductImageHandler)
 		// Admin only routes
 		adminRoutes := products.Group("")
 		adminRoutes.Use(middlewares.JWTAuth(), middlewares.AdminOnly())

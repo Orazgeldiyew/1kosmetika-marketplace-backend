@@ -14,21 +14,38 @@ type Config struct {
 	DBName     string
 	JWTSecret  string
 	ServerPort string
+	SMTPHost   string
+	SMTPPort   string
+	SMTPUser   string
+	SMTPPass   string
+	FromEmail  string
 }
 
 func Load() *Config {
-	// Загружаем .env файл
-	godotenv.Load()
+	// Don't hard-fail if .env missing (OK for container/prod)
+	_ = godotenv.Load()
 
 	return &Config{
-		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBHost:     mustEnv("DB_HOST"),
 		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "seoul1234"),
-		DBName:     getEnv("DB_NAME", "cos_marketplace"),
-		JWTSecret:  getEnv("JWT_SECRET", "your-super-secret-jwt-key"),
+		DBUser:     mustEnv("DB_USER"),
+		DBPassword: mustEnv("DB_PASSWORD"),
+		DBName:     mustEnv("DB_NAME"),
+		JWTSecret:  mustEnv("JWT_SECRET"),
 		ServerPort: getEnv("PORT", "8080"),
+		SMTPHost:   getEnv("SMTP_HOST", ""),
+		SMTPPort:   getEnv("SMTP_PORT", ""),
+		SMTPUser:   getEnv("SMTP_USER", ""),
+		SMTPPass:   getEnv("SMTP_PASS", ""),
+		FromEmail:  getEnv("FROM_EMAIL", ""),
 	}
+}
+
+func mustEnv(key string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	panic("missing required env: " + key)
 }
 
 func getEnv(key, defaultValue string) string {

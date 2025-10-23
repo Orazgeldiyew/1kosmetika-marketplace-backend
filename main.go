@@ -1,7 +1,7 @@
 package main
 
 import (
-	"1kosmetika-marketplace-backend/scheduler"
+	"log"
 
 	"1kosmetika-marketplace-backend/config"
 	"1kosmetika-marketplace-backend/database"
@@ -9,8 +9,8 @@ import (
 	"1kosmetika-marketplace-backend/middlewares"
 	"1kosmetika-marketplace-backend/repositories"
 	"1kosmetika-marketplace-backend/routes"
+	"1kosmetika-marketplace-backend/scheduler"
 	"1kosmetika-marketplace-backend/services"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -26,20 +26,16 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	// Load config
 	cfg := config.Load()
 
-	// Connect to database
 	if err := database.ConnectDB(cfg); err != nil {
 		log.Fatal("Database connection failed:", err)
 	}
-
-	// Run migrations
 	if err := database.Migrate(); err != nil {
 		log.Fatal("Database migration failed:", err)
 	}
 
-	// Initialize repositories
+	// repos
 	userRepo := repositories.NewUserRepository(database.DB)
 	productRepo := repositories.NewProductRepository(database.DB)
 	orderRepo := repositories.NewOrderRepository(database.DB)
@@ -49,7 +45,7 @@ func main() {
 	notificationRepo := repositories.NewNotificationRepository(database.DB)
 	statsRepo := repositories.NewStatsRepository()
 
-	// Initialize services
+	// services
 	userService := services.NewUserService(userRepo)
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(orderRepo, productRepo, cartRepo, notificationRepo)
@@ -59,7 +55,7 @@ func main() {
 	notificationService := services.NewNotificationService(notificationRepo, userRepo)
 	statsService := services.NewStatsService(statsRepo)
 
-	// Initialize handlers
+	// handlers
 	userHandler := handlers.NewUserHandler(userService)
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)
@@ -69,13 +65,12 @@ func main() {
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	statsHandler := handlers.NewStatsHandler(statsService)
 
-	// Create router
 	r := gin.Default()
+	r.MaxMultipartMemory = 10 << 20 // 10MB
 
-	// Middlewares
 	r.Use(middlewares.CORS())
+	r.Static("/static", "./uploads")
 
-	// Health check
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Kosmetika Marketplace Backend is running 🚀",
@@ -83,12 +78,11 @@ func main() {
 			"port":    cfg.ServerPort,
 		})
 	})
-
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "healthy"})
 	})
 
-	// Setup ALL routes
+	// routes
 	routes.SetupUserRoutes(r, userHandler)
 	routes.SetupProductRoutes(r, productHandler)
 	routes.SetupOrderRoutes(r, orderHandler)
@@ -98,7 +92,6 @@ func main() {
 	routes.SetupNotificationRoutes(r, notificationHandler)
 	routes.SetupAdminRoutes(r, statsHandler)
 
-	// Swagger route
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	scheduler.StartCronJobs()

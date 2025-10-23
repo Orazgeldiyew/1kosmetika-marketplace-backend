@@ -8,6 +8,7 @@ import (
 
 type OrderRepository interface {
 	Create(order *models.Order) error
+	CreateOrderProducts(items []models.OrderProduct) error
 	FindByID(id uint) (*models.Order, error)
 	FindByUserID(userID uint) ([]models.Order, error)
 	FindAll() ([]models.Order, error)
@@ -24,6 +25,13 @@ func NewOrderRepository(db *gorm.DB) OrderRepository {
 
 func (r *orderRepository) Create(order *models.Order) error {
 	return r.db.Create(order).Error
+}
+
+func (r *orderRepository) CreateOrderProducts(items []models.OrderProduct) error {
+	if len(items) == 0 {
+		return nil
+	}
+	return r.db.Create(&items).Error
 }
 
 func (r *orderRepository) FindByID(id uint) (*models.Order, error) {

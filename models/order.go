@@ -1,8 +1,6 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 type Order struct {
 	ID            uint      `gorm:"primaryKey" json:"id"`
@@ -13,9 +11,8 @@ type Order struct {
 	Status        string    `gorm:"default:pending" json:"status"` // pending, completed, canceled, shipped
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
-	TotalAmount   float64   `json:"total_amount"`
-	PaymentMethod string    `json:"payment_method"` // Например: "card", "cash", "paypal"
-
+	TotalAmount   float64   `json:"total_amount"` // ⚠️ legacy field; prefer Total
+	PaymentMethod string    `json:"payment_method"`
 }
 
 type OrderProduct struct {

@@ -16,9 +16,7 @@ type OrderStats struct {
 
 type StatsRepository struct{}
 
-func NewStatsRepository() *StatsRepository {
-	return &StatsRepository{}
-}
+func NewStatsRepository() *StatsRepository { return &StatsRepository{} }
 
 type AdminStats struct {
 	TotalUsers    int64   `json:"total_users"`
@@ -29,16 +27,16 @@ type AdminStats struct {
 }
 
 type MonthlyStats struct {
-	Month        string  `json:"month"`
-	Orders       int64   `json:"orders"`
-	Revenue      float64 `json:"revenue"`
-	NewUsers     int64   `json:"new_users"`
+	Month    string  `json:"month"`
+	Orders   int64   `json:"orders"`
+	Revenue  float64 `json:"revenue"`
+	NewUsers int64   `json:"new_users"`
 }
 
 type ChartData struct {
-	MonthlyStats     []MonthlyStats   `json:"monthly_stats"`
-	PopularProducts  []ProductStats   `json:"popular_products"`
-	SalesByCategory  []CategoryStats  `json:"sales_by_category"`
+	MonthlyStats    []MonthlyStats  `json:"monthly_stats"`
+	PopularProducts []ProductStats  `json:"popular_products"`
+	SalesByCategory []CategoryStats `json:"sales_by_category"`
 }
 
 type ProductStats struct {
@@ -60,35 +58,35 @@ type AdvancedStats struct {
 }
 
 type RealTimeStats struct {
-	TodayOrders    int64   `json:"today_orders"`
-	TodayRevenue   float64 `json:"today_revenue"`
-	TodayUsers     int64   `json:"today_users"`
-	PendingOrders  int64   `json:"pending_orders"`
+	TodayOrders   int64   `json:"today_orders"`
+	TodayRevenue  float64 `json:"today_revenue"`
+	TodayUsers    int64   `json:"today_users"`
+	PendingOrders int64   `json:"pending_orders"`
 }
 
 type UserStats struct {
-	ActiveUsers     int64 `json:"active_users"`
-	NewUsersToday   int64 `json:"new_users_today"`
-	NewUsersWeek    int64 `json:"new_users_week"`
-	TotalAdmins     int64 `json:"total_admins"`
+	ActiveUsers   int64 `json:"active_users"`
+	NewUsersToday int64 `json:"new_users_today"`
+	NewUsersWeek  int64 `json:"new_users_week"`
+	TotalAdmins   int64 `json:"total_admins"`
 }
-// ✅ Новые типы для трафика, конверсии, возвратов и прибыли
+
 type TrafficStats struct {
-	TotalVisits      int64   `json:"total_visits"`
-	UniqueUsers      int64   `json:"unique_users"`
-	AverageSession   float64 `json:"average_session"`
+	TotalVisits    int64   `json:"total_visits"`
+	UniqueUsers    int64   `json:"unique_users"`
+	AverageSession float64 `json:"average_session"`
 }
 
 type ConversionStats struct {
-	Visitors     int64   `json:"visitors"`
-	Buyers       int64   `json:"buyers"`
-	Conversion   float64 `json:"conversion_rate"`
+	Visitors   int64   `json:"visitors"`
+	Buyers     int64   `json:"buyers"`
+	Conversion float64 `json:"conversion_rate"`
 }
 
 type RefundStats struct {
-	TotalRefunds    int64   `json:"total_refunds"`
-	RefundedAmount  float64 `json:"refunded_amount"`
-	RefundRate      float64 `json:"refund_rate"`
+	TotalRefunds   int64   `json:"total_refunds"`
+	RefundedAmount float64 `json:"refunded_amount"`
+	RefundRate     float64 `json:"refund_rate"`
 }
 
 type ProfitStats struct {
@@ -97,35 +95,32 @@ type ProfitStats struct {
 	NetProfit    float64 `json:"net_profit"`
 	ProfitMargin float64 `json:"profit_margin"`
 }
-// ✅ 1. Трафик
+
+// ------- Optional/soft-fail section for traffic (if you don't have logs table) -------
 func (r *StatsRepository) GetTrafficStats() (TrafficStats, error) {
 	db := database.DB
 	var stats TrafficStats
 
-	// Если у тебя нет таблицы traffic_logs, просто пример:
-	db.Raw(`SELECT COUNT(*) FROM traffic_logs`).Scan(&stats.TotalVisits)
-	db.Raw(`SELECT COUNT(DISTINCT user_id) FROM traffic_logs WHERE user_id IS NOT NULL`).Scan(&stats.UniqueUsers)
-	db.Raw(`SELECT COALESCE(AVG(session_duration),0) FROM traffic_logs`).Scan(&stats.AverageSession)
+	// Soft fallback if tables don't exist: query returns zero without error in many setups
+	_ = db.Raw(`SELECT COUNT(*) FROM traffic_logs`).Scan(&stats.TotalVisits).Error
+	_ = db.Raw(`SELECT COUNT(DISTINCT user_id) FROM traffic_logs WHERE user_id IS NOT NULL`).Scan(&stats.UniqueUsers).Error
+	_ = db.Raw(`SELECT COALESCE(AVG(session_duration),0) FROM traffic_logs`).Scan(&stats.AverageSession).Error
 
 	return stats, nil
 }
 
-// ✅ 2. Конверсия
 func (r *StatsRepository) GetConversionStats() (ConversionStats, error) {
 	db := database.DB
 	var stats ConversionStats
 
 	db.Table("users").Count(&stats.Visitors)
 	db.Table("orders").Where("status = 'completed'").Distinct("user_id").Count(&stats.Buyers)
-
 	if stats.Visitors > 0 {
 		stats.Conversion = float64(stats.Buyers) / float64(stats.Visitors) * 100
 	}
-
 	return stats, nil
 }
 
-// ✅ 3. Возвраты
 func (r *StatsRepository) GetRefundStats() (RefundStats, error) {
 	db := database.DB
 	var stats RefundStats
@@ -135,7 +130,6 @@ func (r *StatsRepository) GetRefundStats() (RefundStats, error) {
 
 	var totalOrders int64
 	db.Table("orders").Count(&totalOrders)
-
 	if totalOrders > 0 {
 		stats.RefundRate = float64(stats.TotalRefunds) / float64(totalOrders) * 100
 	}
@@ -143,13 +137,14 @@ func (r *StatsRepository) GetRefundStats() (RefundStats, error) {
 	return stats, nil
 }
 
-// ✅ 4. Прибыль
 func (r *StatsRepository) GetProfitStats() (ProfitStats, error) {
 	db := database.DB
 	var stats ProfitStats
 
 	db.Table("orders").Select("COALESCE(SUM(total), 0)").Where("status = 'completed'").Scan(&stats.TotalRevenue)
-	db.Table("products").Select("COALESCE(SUM(cost_price * stock), 0)").Scan(&stats.TotalCost)
+
+	// No cost_price in Product model — set TotalCost to 0 for now or implement your own COGS logic
+	stats.TotalCost = 0
 
 	stats.NetProfit = stats.TotalRevenue - stats.TotalCost
 	if stats.TotalRevenue > 0 {
@@ -178,7 +173,6 @@ func (r *StatsRepository) GetAdminStats() (AdminStats, error) {
 	if err := db.Table("reviews").Count(&stats.TotalReviews).Error; err != nil {
 		return stats, err
 	}
-
 	return stats, nil
 }
 
@@ -220,11 +214,9 @@ func (r *StatsRepository) GetMonthlyStats() ([]MonthlyStats, error) {
 		LEFT JOIN user_stats us ON us.month = m.month
 		ORDER BY m.month DESC
 	`
-
 	if err := db.Raw(query).Scan(&monthlyStats).Error; err != nil {
 		return nil, err
 	}
-
 	return monthlyStats, nil
 }
 
@@ -235,18 +227,16 @@ func (r *StatsRepository) GetPopularProducts(limit int) ([]ProductStats, error) 
 	query := `
 		SELECT 
 			p.name as product_name,
-			COUNT(oi.id) as sales_count
-		FROM order_items oi
-		JOIN products p ON p.id = oi.product_id
+			COUNT(op.product_id) as sales_count
+		FROM order_products op
+		JOIN products p ON p.id = op.product_id
 		GROUP BY p.id, p.name
 		ORDER BY sales_count DESC
 		LIMIT ?
 	`
-
 	if err := db.Raw(query, limit).Scan(&popularProducts).Error; err != nil {
 		return nil, err
 	}
-
 	return popularProducts, nil
 }
 
@@ -256,21 +246,19 @@ func (r *StatsRepository) GetSalesByCategory() ([]CategoryStats, error) {
 
 	query := `
 		SELECT 
-			c.name as category_name,
-			COALESCE(SUM(oi.quantity * oi.price), 0) as total_sales,
-			COUNT(DISTINCT o.id) as order_count
-		FROM categories c
-		LEFT JOIN products p ON p.category_id = c.id
-		LEFT JOIN order_items oi ON oi.product_id = p.id
-		LEFT JOIN orders o ON o.id = oi.order_id AND o.status = 'completed'
-		GROUP BY c.id, c.name
+			p.category as category_name,
+			COALESCE(SUM(op.quantity * op.price), 0) as total_sales,
+			COUNT(DISTINCT op.order_id) as order_count
+		FROM order_products op
+		JOIN products p ON p.id = op.product_id
+		JOIN orders o ON o.id = op.order_id AND o.status = 'completed'
+		GROUP BY p.category
 		ORDER BY total_sales DESC
 	`
 
 	if err := db.Raw(query).Scan(&categoryStats).Error; err != nil {
 		return nil, err
 	}
-
 	return categoryStats, nil
 }
 
@@ -282,17 +270,14 @@ func (r *StatsRepository) GetChartData() (ChartData, error) {
 	if err != nil {
 		return chartData, err
 	}
-
 	chartData.PopularProducts, err = r.GetPopularProducts(10)
 	if err != nil {
 		return chartData, err
 	}
-
 	chartData.SalesByCategory, err = r.GetSalesByCategory()
 	if err != nil {
 		return chartData, err
 	}
-
 	return chartData, nil
 }
 
@@ -300,11 +285,9 @@ func (r *StatsRepository) GetAdvancedStats() (AdvancedStats, error) {
 	db := database.DB
 	var stats AdvancedStats
 
-	// Средний чек
 	db.Table("orders").Where("status = 'completed'").
 		Select("COALESCE(AVG(total), 0)").Scan(&stats.AverageOrderValue)
 
-	// Повторные клиенты
 	db.Raw(`
 		SELECT COUNT(*) FROM (
 			SELECT user_id FROM orders 
@@ -313,25 +296,21 @@ func (r *StatsRepository) GetAdvancedStats() (AdvancedStats, error) {
 		) as repeat_customers
 	`).Scan(&stats.RepeatCustomers)
 
-	// Lifetime Value (упрощенный расчет)
 	db.Raw(`
 		SELECT COALESCE(AVG(total_orders), 0) FROM (
-			SELECT user_id, COUNT(*) as order_count, SUM(total) as total_orders 
+			SELECT user_id, SUM(total) as total_orders 
 			FROM orders WHERE status = 'completed' 
 			GROUP BY user_id
 		) user_orders
 	`).Scan(&stats.CustomerLifetime)
 
-	// Conversion Rate (упрощенный)
 	var totalVisitors int64
 	db.Table("users").Count(&totalVisitors)
 	var buyers int64
 	db.Table("orders").Where("status = 'completed'").Distinct("user_id").Count(&buyers)
-	
 	if totalVisitors > 0 {
 		stats.ConversionRate = float64(buyers) / float64(totalVisitors) * 100
 	}
-
 	return stats, nil
 }
 
@@ -340,15 +319,10 @@ func (r *StatsRepository) GetRealTimeStats() (RealTimeStats, error) {
 	var stats RealTimeStats
 
 	today := time.Now().Format("2006-01-02")
-
-	db.Table("orders").Where("DATE(created_at) = ?", today).
-		Count(&stats.TodayOrders)
-	db.Table("orders").Where("DATE(created_at) = ?", today).
-		Select("COALESCE(SUM(total), 0)").Scan(&stats.TodayRevenue)
-	db.Table("users").Where("DATE(created_at) = ?", today).
-		Count(&stats.TodayUsers)
-	db.Table("orders").Where("status = 'pending'").
-		Count(&stats.PendingOrders)
+	db.Table("orders").Where("DATE(created_at) = ?", today).Count(&stats.TodayOrders)
+	db.Table("orders").Where("DATE(created_at) = ?", today).Select("COALESCE(SUM(total), 0)").Scan(&stats.TodayRevenue)
+	db.Table("users").Where("DATE(created_at) = ?", today).Count(&stats.TodayUsers)
+	db.Table("orders").Where("status = 'pending'").Count(&stats.PendingOrders)
 
 	return stats, nil
 }
@@ -360,18 +334,14 @@ func (r *StatsRepository) GetUserStats() (UserStats, error) {
 	today := time.Now().Format("2006-01-02")
 	weekAgo := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
 
-	// Активные пользователи (с заказами за последний месяц)
 	db.Raw(`
 		SELECT COUNT(DISTINCT user_id) FROM orders 
 		WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
 	`).Scan(&stats.ActiveUsers)
 
-	db.Table("users").Where("DATE(created_at) = ?", today).
-		Count(&stats.NewUsersToday)
-	db.Table("users").Where("created_at >= ?", weekAgo).
-		Count(&stats.NewUsersWeek)
-	db.Table("users").Where("role = 'admin'").
-		Count(&stats.TotalAdmins)
+	db.Table("users").Where("DATE(created_at) = ?", today).Count(&stats.NewUsersToday)
+	db.Table("users").Where("created_at >= ?", weekAgo).Count(&stats.NewUsersWeek)
+	db.Table("users").Where("role = 'admin'").Count(&stats.TotalAdmins)
 
 	return stats, nil
 }
@@ -383,22 +353,18 @@ func (r *StatsRepository) GetDashboardStats() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	realTimeStats, err := r.GetRealTimeStats()
 	if err != nil {
 		return nil, err
 	}
-
 	userStats, err := r.GetUserStats()
 	if err != nil {
 		return nil, err
 	}
-
 	advancedStats, err := r.GetAdvancedStats()
 	if err != nil {
 		return nil, err
 	}
-
 	chartData, err := r.GetChartData()
 	if err != nil {
 		return nil, err
@@ -421,7 +387,7 @@ func (r *StatsRepository) GetUserPurchaseStats() ([]OrderStats, error) {
 		SELECT 
 			users.full_name AS user_name,
 			COUNT(orders.id) AS total_orders,
-			SUM(orders.total_amount) AS total_spent,
+			SUM(orders.total) AS total_spent,
 			MAX(orders.created_at) AS last_order_date,
 			(
 				SELECT payment_method
@@ -439,6 +405,7 @@ func (r *StatsRepository) GetUserPurchaseStats() ([]OrderStats, error) {
 	result := db.Raw(query).Scan(&stats)
 	return stats, result.Error
 }
+
 func (r *StatsRepository) SaveDailyStats(date time.Time) error {
 	db := database.DB
 
@@ -448,7 +415,7 @@ func (r *StatsRepository) SaveDailyStats(date time.Time) error {
 	db.Model(&models.User{}).Count(&totalUsers)
 	db.Model(&models.Order{}).Count(&totalOrders)
 	db.Model(&models.Product{}).Count(&totalProducts)
-	db.Model(&models.Order{}).Select("SUM(total_amount)").Scan(&totalRevenue)
+	db.Model(&models.Order{}).Select("COALESCE(SUM(total),0)").Scan(&totalRevenue)
 
 	daily := models.DailyStats{
 		Date:          date.Format("2006-01-02"),

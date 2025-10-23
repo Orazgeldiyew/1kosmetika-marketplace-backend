@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+
 	"1kosmetika-marketplace-backend/models"
 	"1kosmetika-marketplace-backend/repositories"
 )
@@ -35,51 +36,59 @@ func NewOrderService(
 }
 
 func (s *orderService) CreateOrder(userID uint, productIDs []uint) (*models.Order, error) {
-	// Get products
+	// Load products
 	products, err := s.productRepo.FindByIDs(productIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
 	}
-
 	if len(products) != len(productIDs) {
 		return nil, fmt.Errorf("some products not found")
 	}
 
-	// Calculate total
+	// Compute totals & build order items (qty=1 basic case)
 	var total float64
-	for _, product := range products {
-		total += product.Price
+	items := make([]models.OrderProduct, 0, len(products))
+	for _, p := range products {
+		total += p.Price
+		items = append(items, models.OrderProduct{
+			ProductID: p.ID,
+			Quantity:  1,
+			Price:     p.Price,
+		})
 	}
 
-	// Create order
 	order := &models.Order{
-		UserID:   userID,
+		UserID:  userID,
+		Total:   total,
+		Status:  "pending",
+		// Keep M2M for quick reads; GORM will maintain join, but we also store richer OrderProduct rows
 		Products: products,
-		Total:    total,
-		Status:   "pending",
 	}
 
 	if err := s.orderRepo.Create(order); err != nil {
 		return nil, fmt.Errorf("failed to create order: %w", err)
 	}
 
-	// Create notification (как в старом коде)
+	// Attach order id to items and persist
+	for i := range items {
+		items[i].OrderID = order.ID
+	}
+	if err := s.orderRepo.CreateOrderProducts(items); err != nil {
+		return nil, fmt.Errorf("failed to save order items: %w", err)
+	}
+
+	// Notify
 	notification := &models.Notification{
 		UserID:  userID,
 		Title:   "Заказ оформлен",
 		Message: fmt.Sprintf("Ваш заказ #%d успешно оформлен. Сумма: %.2f руб.", order.ID, total),
 		Type:    "success",
 	}
-	
-	if err := s.notificationRepo.Create(notification); err != nil {
-		// Логируем ошибку, но не прерываем создание заказа
-		fmt.Printf("Failed to create notification: %v\n", err)
-	}
+	_ = s.notificationRepo.Create(notification) // non-blocking
 
-	// Clear user's cart
-	cart, err := s.cartRepo.FindByUserID(userID)
-	if err == nil && cart != nil {
-		s.cartRepo.ClearCart(cart.ID)
+	// Clear cart if exists
+	if cart, err := s.cartRepo.FindByUserID(userID); err == nil && cart != nil {
+		_ = s.cartRepo.ClearCart(cart.ID)
 	}
 
 	return order, nil

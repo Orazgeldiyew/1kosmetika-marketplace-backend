@@ -11,13 +11,13 @@ type Order struct {
 	Status        string    `gorm:"default:pending" json:"status"` // pending, completed, canceled, shipped
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
-	TotalAmount   float64   `json:"total_amount"` // ⚠️ legacy field; prefer Total
+	TotalAmount   float64   `json:"total_amount"`  // ⚠️ legacy field; prefer Total
 	PaymentMethod string    `json:"payment_method"`
 }
 
 type OrderProduct struct {
-	OrderID   uint    `gorm:"primaryKey"`
-	ProductID uint    `gorm:"primaryKey"`
-	Quantity  int     `gorm:"default:1"`
-	Price     float64 `gorm:"not null"`
+    OrderID   uint    `gorm:"primaryKey"`
+    ProductID uint    `gorm:"primaryKey"`
+    Quantity  int     `gorm:"not null;default:1"`
+    Price     float64 `gorm:"not null;default:0"`
 }

@@ -97,7 +97,7 @@ func main() {
 	scheduler.StartCronJobs()
 
 	log.Printf("🚀 Server running on http://localhost:%s", cfg.ServerPort)
-	log.Printf("📚 Swagger docs available on http://localhost:%s/swagger/index.html", cfg.ServerPort)
+	log.Printf("📚 Swagger docs available on http://localhost:%5s/swagger/index.html", cfg.ServerPort)
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

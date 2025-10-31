@@ -50,24 +50,23 @@ func (s *StatsService) GetUserPurchaseStats() ([]repositories.OrderStats, error)
 	return s.repo.GetUserPurchaseStats()
 }
 
-// ✅ Новые методы для расширенной аналитики
 
-// Трафик — общее количество посещений и активных пользователей
+
 func (s *StatsService) GetTrafficStats() (repositories.TrafficStats, error) {
 	return s.repo.GetTrafficStats()
 }
 
-// Конверсия — процент посетителей, сделавших заказ
+
 func (s *StatsService) GetConversionStats() (repositories.ConversionStats, error) {
 	return s.repo.GetConversionStats()
 }
 
-// Возвраты — количество и сумма возвращённых заказов
+
 func (s *StatsService) GetRefundStats() (repositories.RefundStats, error) {
 	return s.repo.GetRefundStats()
 }
 
-// Прибыль — чистая прибыль (доход минус расходы)
+
 func (s *StatsService) GetProfitStats() (repositories.ProfitStats, error) {
 	return s.repo.GetProfitStats()
 }

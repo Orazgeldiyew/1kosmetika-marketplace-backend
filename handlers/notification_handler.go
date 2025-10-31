@@ -17,15 +17,7 @@ func NewNotificationHandler(notificationService services.NotificationService) *N
 	return &NotificationHandler{notificationService: notificationService}
 }
 
-// @Summary Получить уведомления
-// @Description Получить уведомления пользователя с пагинацией
-// @Tags notifications
-// @Produce json
-// @Param page query int false "Номер страницы" default(1)
-// @Param limit query int false "Лимит на странице" default(20)
-// @Success 200 {object} gin.H
-// @Router /api/notifications [get]
-// @Security BearerAuth
+
 func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -45,13 +37,7 @@ func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
 	})
 }
 
-// @Summary Получить количество непрочитанных
-// @Description Получить количество непрочитанных уведомлений
-// @Tags notifications
-// @Produce json
-// @Success 200 {object} gin.H
-// @Router /api/notifications/unread-count [get]
-// @Security BearerAuth
+
 func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -64,15 +50,7 @@ func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"unread_count": count})
 }
 
-// @Summary Отметить как прочитанное
-// @Description Отметить уведомление как прочитанное
-// @Tags notifications
-// @Produce json
-// @Param id path int true "ID уведомления"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Router /api/notifications/{id}/read [put]
-// @Security BearerAuth
+
 func (h *NotificationHandler) MarkAsRead(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	notificationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -89,13 +67,6 @@ func (h *NotificationHandler) MarkAsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Notification marked as read"})
 }
 
-// @Summary Отметить все как прочитанные
-// @Description Отметить все уведомления как прочитанные
-// @Tags notifications
-// @Produce json
-// @Success 200 {object} gin.H
-// @Router /api/notifications/mark-all-read [put]
-// @Security BearerAuth
 func (h *NotificationHandler) MarkAllAsRead(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -107,16 +78,7 @@ func (h *NotificationHandler) MarkAllAsRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "All notifications marked as read"})
 }
 
-// @Summary Создать уведомление
-// @Description Создать новое уведомление (только для админов)
-// @Tags notifications
-// @Accept json
-// @Produce json
-// @Param input body models.Notification true "Данные уведомления"
-// @Success 201 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Router /api/notifications [post]
-// @Security BearerAuth
+
 func (h *NotificationHandler) CreateNotification(c *gin.Context) {
 	var input models.Notification
 	if err := c.ShouldBindJSON(&input); err != nil {

@@ -8,10 +8,10 @@ type Order struct {
 	User          User      `gorm:"foreignKey:UserID" json:"user"`
 	Products      []Product `gorm:"many2many:order_products;" json:"products"`
 	Total         float64   `json:"total"`
-	Status        string    `gorm:"default:pending" json:"status"` // pending, completed, canceled, shipped
+	Status        string    `gorm:"default:pending" json:"status"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
-	TotalAmount   float64   `json:"total_amount"`  // ⚠️ legacy field; prefer Total
+	TotalAmount   float64   `json:"total_amount"` 
 	PaymentMethod string    `json:"payment_method"`
 }
 

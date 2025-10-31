@@ -143,7 +143,7 @@ func (r *StatsRepository) GetProfitStats() (ProfitStats, error) {
 
 	db.Table("orders").Select("COALESCE(SUM(total), 0)").Where("status = 'completed'").Scan(&stats.TotalRevenue)
 
-	// No cost_price in Product model — set TotalCost to 0 for now or implement your own COGS logic
+
 	stats.TotalCost = 0
 
 	stats.NetProfit = stats.TotalRevenue - stats.TotalCost

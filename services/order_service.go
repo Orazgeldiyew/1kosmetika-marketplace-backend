@@ -36,7 +36,7 @@ func NewOrderService(
 }
 
 func (s *orderService) CreateOrder(userID uint, productIDs []uint) (*models.Order, error) {
-	// Load products
+
 	products, err := s.productRepo.FindByIDs(productIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get products: %w", err)
@@ -45,7 +45,7 @@ func (s *orderService) CreateOrder(userID uint, productIDs []uint) (*models.Orde
 		return nil, fmt.Errorf("some products not found")
 	}
 
-	// Compute totals & build order items (qty=1 basic case)
+
 	var total float64
 	items := make([]models.OrderProduct, 0, len(products))
 	for _, p := range products {
@@ -77,16 +77,16 @@ func (s *orderService) CreateOrder(userID uint, productIDs []uint) (*models.Orde
 		return nil, fmt.Errorf("failed to save order items: %w", err)
 	}
 
-	// Notify
+
 	notification := &models.Notification{
 		UserID:  userID,
 		Title:   "Заказ оформлен",
 		Message: fmt.Sprintf("Ваш заказ #%d успешно оформлен. Сумма: %.2f руб.", order.ID, total),
 		Type:    "success",
 	}
-	_ = s.notificationRepo.Create(notification) // non-blocking
+	_ = s.notificationRepo.Create(notification) 
 
-	// Clear cart if exists
+
 	if cart, err := s.cartRepo.FindByUserID(userID); err == nil && cart != nil {
 		_ = s.cartRepo.ClearCart(cart.ID)
 	}

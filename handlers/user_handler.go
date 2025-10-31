@@ -28,16 +28,7 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-// @Summary Регистрация
-// @Description Создает нового пользователя
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body RegisterRequest true "Данные пользователя"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 409 {object} map[string]interface{}
-// @Router /api/auth/register [post]
+
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,16 +64,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// @Summary Вход
-// @Description Аутентификация пользователя
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body LoginRequest true "Данные для входа"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /api/auth/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -108,14 +89,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
-// @Summary Получить профиль
-// @Description Получить данные текущего пользователя
-// @Tags auth
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Router /api/auth/profile [get]
-// @Security BearerAuth
+
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	
@@ -134,18 +108,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
-// @Summary Изменить роль пользователя
-// @Description Позволяет админу изменить роль пользователя
-// @Tags admin
-// @Accept json
-// @Produce json
-// @Param id path int true "ID пользователя"
-// @Param request body map[string]string true "Новая роль"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 403 {object} map[string]string
-// @Router /api/admin/users/{id}/role [put]
-// @Security BearerAuth
+
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	userID := c.Param("id")
 	var body struct {
@@ -171,13 +134,6 @@ func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Role updated successfully"})
 }
 
-// @Summary Получить всех пользователей
-// @Description Получить список всех пользователей (только для админов)
-// @Tags admin
-// @Produce json
-// @Success 200 {array} models.User
-// @Router /api/admin/users [get]
-// @Security BearerAuth
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	users, err := h.userService.GetAllUsers()
 	if err != nil {
@@ -187,14 +143,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// @Summary Удалить пользователя
-// @Description Удалить пользователя по ID (только для админов)
-// @Tags admin
-// @Produce json
-// @Param id path int true "ID пользователя"
-// @Success 200 {object} map[string]interface{}
-// @Router /api/admin/users/{id} [delete]
-// @Security BearerAuth
+
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID := c.Param("id")
 	

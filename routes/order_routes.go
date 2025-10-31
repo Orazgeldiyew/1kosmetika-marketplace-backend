@@ -15,7 +15,7 @@ func SetupOrderRoutes(r *gin.Engine, orderHandler *handlers.OrderHandler) {
 		orders.GET("/", orderHandler.GetUserOrders)
 		orders.GET("/:id", orderHandler.GetOrderByID)
 		
-		// Admin only
+	
 		orders.GET("/admin/all", middlewares.AdminOnly(), orderHandler.GetAllOrders)
 	}
 }

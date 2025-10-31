@@ -18,12 +18,6 @@ func NewProductHandler(productService services.ProductService) *ProductHandler {
 	return &ProductHandler{productService: productService}
 }
 
-// @Summary Получить все продукты
-// @Description Получить список всех продуктов
-// @Tags products
-// @Produce json
-// @Success 200 {array} models.Product
-// @Router /api/products [get]
 func (h *ProductHandler) GetProducts(c *gin.Context) {
 	products, err := h.productService.GetAllProducts()
 	if err != nil {
@@ -33,14 +27,6 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-// @Summary Получить продукты с пагинацией
-// @Description Получить продукты с пагинацией
-// @Tags products
-// @Produce json
-// @Param page query int false "Номер страницы" default(1)
-// @Param limit query int false "Лимит на странице" default(20)
-// @Success 200 {object} gin.H
-// @Router /api/products/paginated [get]
 func (h *ProductHandler) GetProductsPaginated(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
@@ -60,19 +46,6 @@ func (h *ProductHandler) GetProductsPaginated(c *gin.Context) {
 	})
 }
 
-// @Summary Поиск и фильтрация продуктов
-// @Description Поиск продуктов с фильтрацией и пагинацией
-// @Tags products
-// @Produce json
-// @Param category query string false "Категория"
-// @Param brand query string false "Бренд"
-// @Param min_price query number false "Минимальная цена"
-// @Param max_price query number false "Максимальная цена"
-// @Param search query string false "Поисковый запрос"
-// @Param page query int false "Номер страницы" default(1)
-// @Param limit query int false "Лимит на странице" default(20)
-// @Success 200 {object} gin.H
-// @Router /api/products/search [get]
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	// Parse query parameters
 	filter := repositories.ProductFilter{
@@ -112,12 +85,7 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 	})
 }
 
-// @Summary Получить все категории
-// @Description Получить список всех категорий продуктов
-// @Tags products
-// @Produce json
-// @Success 200 {array} string
-// @Router /api/products/categories [get]
+
 func (h *ProductHandler) GetCategories(c *gin.Context) {
 	categories, err := h.productService.GetCategories()
 	if err != nil {
@@ -127,12 +95,6 @@ func (h *ProductHandler) GetCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, categories)
 }
 
-// @Summary Получить все бренды
-// @Description Получить список всех брендов продуктов
-// @Tags products
-// @Produce json
-// @Success 200 {array} string
-// @Router /api/products/brands [get]
 func (h *ProductHandler) GetBrands(c *gin.Context) {
 	brands, err := h.productService.GetBrands()
 	if err != nil {
@@ -142,14 +104,6 @@ func (h *ProductHandler) GetBrands(c *gin.Context) {
 	c.JSON(http.StatusOK, brands)
 }
 
-// @Summary Получить продукт по ID
-// @Description Получить информацию о конкретном продукте
-// @Tags products
-// @Produce json
-// @Param id path int true "ID продукта"
-// @Success 200 {object} models.Product
-// @Failure 404 {object} map[string]interface{}
-// @Router /api/products/{id} [get]
 func (h *ProductHandler) GetProductByID(c *gin.Context) {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)
@@ -166,16 +120,7 @@ func (h *ProductHandler) GetProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
-// @Summary Создать продукт
-// @Description Создать новый продукт (только для админов)
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param product body models.Product true "Данные продукта"
-// @Success 201 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Router /api/products [post]
-// @Security BearerAuth
+
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product models.Product
 	if err := c.ShouldBindJSON(&product); err != nil {
@@ -194,18 +139,6 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	})
 }
 
-// @Summary Обновить продукт
-// @Description Обновить информацию о продукте (только для админов)
-// @Tags products
-// @Accept json
-// @Produce json
-// @Param id path int true "ID продукта"
-// @Param product body models.Product true "Обновленные данные продукта"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Router /api/products/{id} [put]
-// @Security BearerAuth
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)
@@ -231,15 +164,6 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	})
 }
 
-// @Summary Удалить продукт
-// @Description Удалить продукт (только для админов)
-// @Tags products
-// @Produce json
-// @Param id path int true "ID продукта"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Router /api/products/{id} [delete]
-// @Security BearerAuth
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	productID, err := strconv.ParseUint(id, 10, 32)

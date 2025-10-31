@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// DailyStats — ежедневная статистика для админа
+
 type DailyStats struct {
 	ID            uint      `gorm:"primaryKey" json:"id"`
 	Date          string    `json:"date" gorm:"uniqueIndex"`

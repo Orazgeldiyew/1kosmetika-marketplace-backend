@@ -67,14 +67,14 @@ func (r *productRepository) FindByIDs(ids []uint) ([]models.Product, error) {
 	return products, err
 }
 
-// ДОБАВЛЯЕМ метод пагинации
+
 func (r *productRepository) FindWithPagination(page, limit int) ([]models.Product, int64, error) {
 	var products []models.Product
 	var total int64
 
 	offset := (page - 1) * limit
 	
-	// Count total products
+
 	if err := r.db.Model(&models.Product{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -85,7 +85,7 @@ func (r *productRepository) FindWithPagination(page, limit int) ([]models.Produc
 	return products, total, err
 }
 
-// ДОБАВЛЯЕМ метод фильтрации с пагинацией
+
 func (r *productRepository) FindWithFilters(filter ProductFilter, page, limit int) ([]models.Product, int64, error) {
 	var products []models.Product
 	var total int64
@@ -110,26 +110,26 @@ func (r *productRepository) FindWithFilters(filter ProductFilter, page, limit in
 		query = query.Where("name ILIKE ? OR description ILIKE ?", searchPattern, searchPattern)
 	}
 
-	// Count total with filters
+
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	
-	// Apply pagination
+
 	offset := (page - 1) * limit
 	err := query.Limit(limit).Offset(offset).Find(&products).Error
 	
 	return products, total, err
 }
 
-// ДОБАВЛЯЕМ метод для получения всех категорий
+
 func (r *productRepository) GetCategories() ([]string, error) {
 	var categories []string
 	err := r.db.Model(&models.Product{}).Distinct().Pluck("category", &categories).Error
 	return categories, err
 }
 
-// ДОБАВЛЯЕМ метод для получения всех брендов
+
 func (r *productRepository) GetBrands() ([]string, error) {
 	var brands []string
 	err := r.db.Model(&models.Product{}).Distinct().Pluck("brand", &brands).Error

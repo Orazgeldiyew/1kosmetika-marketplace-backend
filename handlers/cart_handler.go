@@ -21,13 +21,6 @@ type AddToCartRequest struct {
 	Quantity  int  `json:"quantity" binding:"required,min=1"`
 }
 
-// @Summary Получить корзину
-// @Description Получить корзину текущего пользователя
-// @Tags cart
-// @Produce json
-// @Success 200 {object} models.Cart
-// @Router /api/cart [get]
-// @Security BearerAuth
 func (h *CartHandler) GetCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	cart, err := h.cartService.GetCart(userID)
@@ -38,16 +31,6 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 	c.JSON(http.StatusOK, cart)
 }
 
-// @Summary Добавить товар в корзину
-// @Description Добавить товар в корзину пользователя
-// @Tags cart
-// @Accept json
-// @Produce json
-// @Param input body AddToCartRequest true "Данные товара"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Router /api/cart/items [post]
-// @Security BearerAuth
 func (h *CartHandler) AddToCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	var req AddToCartRequest
@@ -65,15 +48,6 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Item added to cart successfully"})
 }
 
-// @Summary Удалить товар из корзины
-// @Description Удалить товар из корзины пользователя
-// @Tags cart
-// @Produce json
-// @Param id path int true "ID элемента корзины"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Router /api/cart/items/{id} [delete]
-// @Security BearerAuth
 func (h *CartHandler) RemoveFromCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	itemID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -90,13 +64,6 @@ func (h *CartHandler) RemoveFromCart(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Item removed from cart successfully"})
 }
 
-// @Summary Очистить корзину
-// @Description Очистить всю корзину пользователя
-// @Tags cart
-// @Produce json
-// @Success 200 {object} gin.H
-// @Router /api/cart/clear [delete]
-// @Security BearerAuth
 func (h *CartHandler) ClearCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	if err := h.cartService.ClearCart(userID); err != nil {

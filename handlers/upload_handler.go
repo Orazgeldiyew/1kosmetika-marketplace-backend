@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// UploadProductImageHandler — загрузка фото товара
+
 func UploadProductImageHandler(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {

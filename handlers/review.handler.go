@@ -27,13 +27,6 @@ type UpdateReviewRequest struct {
 	Comment string `json:"comment" binding:"max=500"`
 }
 
-// @Summary Получить отзывы товара
-// @Description Получить все отзывы для конкретного товара
-// @Tags reviews
-// @Produce json
-// @Param productId path int true "ID товара"
-// @Success 200 {object} gin.H
-// @Router /api/reviews/product/{productId} [get]
 func (h *ReviewHandler) GetProductReviews(c *gin.Context) {
 	productID, err := strconv.ParseUint(c.Param("productId"), 10, 32)
 	if err != nil {
@@ -54,13 +47,6 @@ func (h *ReviewHandler) GetProductReviews(c *gin.Context) {
 	})
 }
 
-// @Summary Получить мои отзывы
-// @Description Получить все отзывы текущего пользователя
-// @Tags reviews
-// @Produce json
-// @Success 200 {array} models.Review
-// @Router /api/reviews/user [get]
-// @Security BearerAuth
 func (h *ReviewHandler) GetUserReviews(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	
@@ -73,16 +59,7 @@ func (h *ReviewHandler) GetUserReviews(c *gin.Context) {
 	c.JSON(http.StatusOK, reviews)
 }
 
-// @Summary Создать отзыв
-// @Description Создать новый отзыв для товара
-// @Tags reviews
-// @Accept json
-// @Produce json
-// @Param input body CreateReviewRequest true "Данные отзыва"
-// @Success 201 {object} models.Review
-// @Failure 400 {object} gin.H
-// @Router /api/reviews [post]
-// @Security BearerAuth
+
 func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	var req CreateReviewRequest
@@ -101,17 +78,6 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, review)
 }
 
-// @Summary Обновить отзыв
-// @Description Обновить существующий отзыв
-// @Tags reviews
-// @Accept json
-// @Produce json
-// @Param id path int true "ID отзыва"
-// @Param input body UpdateReviewRequest true "Обновленные данные отзыва"
-// @Success 200 {object} models.Review
-// @Failure 400 {object} gin.H
-// @Router /api/reviews/{id} [put]
-// @Security BearerAuth
 func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	reviewID, err := strconv.ParseUint(c.Param("id"), 10, 32)
@@ -135,15 +101,7 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 	c.JSON(http.StatusOK, review)
 }
 
-// @Summary Удалить отзыв
-// @Description Удалить отзыв
-// @Tags reviews
-// @Produce json
-// @Param id path int true "ID отзыва"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Router /api/reviews/{id} [delete]
-// @Security BearerAuth
+
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	reviewID, err := strconv.ParseUint(c.Param("id"), 10, 32)

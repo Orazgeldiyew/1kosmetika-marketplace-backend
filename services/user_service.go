@@ -25,20 +25,20 @@ func NewUserService(userRepo repositories.UserRepository) UserService {
 }
 
 func (s *userService) Register(user *models.User) error {
-	// Check if user already exists
+
 	existingUser, err := s.userRepo.FindByEmail(user.Email)
 	if err == nil && existingUser != nil {
 		return fmt.Errorf("user with this email already exists")
 	}
 
-	// Hash password
+
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("failed to hash password")
 	}
 
 	user.Password = hashedPassword
-	user.Role = "user" // default role
+	user.Role = "user" 
 
 	return s.userRepo.Create(user)
 }

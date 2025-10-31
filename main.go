@@ -13,29 +13,23 @@ import (
 	"1kosmetika-marketplace-backend/services"
 
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title Kosmetika Marketplace API
-// @version 1.0
-// @description API сервер для Kosmetika Marketplace
-// @host localhost:8080
-// @BasePath /
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
 func main() {
+
 	cfg := config.Load()
 
+
 	if err := database.ConnectDB(cfg); err != nil {
-		log.Fatal("Database connection failed:", err)
-	}
-	if err := database.Migrate(); err != nil {
-		log.Fatal("Database migration failed:", err)
+		log.Fatal("❌ Database connection failed:", err)
 	}
 
-	// repos
+
+	if err := database.Migrate(); err != nil {
+		log.Fatal("❌ Database migration failed:", err)
+	}
+
+
 	userRepo := repositories.NewUserRepository(database.DB)
 	productRepo := repositories.NewProductRepository(database.DB)
 	orderRepo := repositories.NewOrderRepository(database.DB)
@@ -45,7 +39,7 @@ func main() {
 	notificationRepo := repositories.NewNotificationRepository(database.DB)
 	statsRepo := repositories.NewStatsRepository()
 
-	// services
+
 	userService := services.NewUserService(userRepo)
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(orderRepo, productRepo, cartRepo, notificationRepo)
@@ -55,7 +49,6 @@ func main() {
 	notificationService := services.NewNotificationService(notificationRepo, userRepo)
 	statsService := services.NewStatsService(statsRepo)
 
-	// handlers
 	userHandler := handlers.NewUserHandler(userService)
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)
@@ -65,11 +58,12 @@ func main() {
 	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	statsHandler := handlers.NewStatsHandler(statsService)
 
-	r := gin.Default()
-	r.MaxMultipartMemory = 10 << 20 // 10MB
 
+	r := gin.Default()
+	r.MaxMultipartMemory = 10 << 20 // 10 МБ для загрузки файлов
 	r.Use(middlewares.CORS())
 	r.Static("/static", "./uploads")
+
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -82,7 +76,7 @@ func main() {
 		c.JSON(200, gin.H{"status": "healthy"})
 	})
 
-	// routes
+
 	routes.SetupUserRoutes(r, userHandler)
 	routes.SetupProductRoutes(r, productHandler)
 	routes.SetupOrderRoutes(r, orderHandler)
@@ -92,13 +86,13 @@ func main() {
 	routes.SetupNotificationRoutes(r, notificationHandler)
 	routes.SetupAdminRoutes(r, statsHandler)
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	scheduler.StartCronJobs()
 
+
 	log.Printf("🚀 Server running on http://localhost:%s", cfg.ServerPort)
-	log.Printf("📚 Swagger docs available on http://localhost:%5s/swagger/index.html", cfg.ServerPort)
+
 	if err := r.Run(":" + cfg.ServerPort); err != nil {
-		log.Fatal("Server failed to start:", err)
+		log.Fatal("❌ Server failed to start:", err)
 	}
 }

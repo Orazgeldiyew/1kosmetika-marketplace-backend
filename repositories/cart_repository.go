@@ -54,7 +54,7 @@ func (r *cartRepository) FindCartItem(cartID, productID uint) (*models.CartItem,
 	return &item, nil
 }
 
-// ДОБАВИТЬ этот метод
+
 func (r *cartRepository) FindCartItemByID(itemID uint) (*models.CartItem, error) {
 	var item models.CartItem
 	err := r.db.Preload("Product").First(&item, itemID).Error
@@ -76,7 +76,7 @@ func (r *cartRepository) DeleteCartItem(itemID uint) error {
 	return r.db.Delete(&models.CartItem{}, itemID).Error
 }
 
-// ДОБАВИТЬ этот метод
+
 func (r *cartRepository) DeleteCartItemByProduct(cartID, productID uint) error {
 	return r.db.Where("cart_id = ? AND product_id = ?", cartID, productID).Delete(&models.CartItem{}).Error
 }

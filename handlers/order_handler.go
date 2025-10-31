@@ -22,17 +22,6 @@ type CreateOrderRequest struct {
 	ProductIDs []uint `json:"product_ids" binding:"required"`
 }
 
-// @Summary Создать заказ
-// @Description Создание нового заказа
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param input body CreateOrderRequest true "Данные заказа"
-// @Success 201 {object} gin.H
-// @Failure 400 {object} gin.H
-// @Failure 500 {object} gin.H
-// @Router /api/orders [post]
-// @Security BearerAuth
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var req CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -72,13 +61,6 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	})
 }
 
-// @Summary Получить заказы пользователя
-// @Description Получить список заказов текущего пользователя
-// @Tags orders
-// @Produce json
-// @Success 200 {array} models.Order
-// @Router /api/orders [get]
-// @Security BearerAuth
 func (h *OrderHandler) GetUserOrders(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	orders, err := h.orderService.GetUserOrders(userID)
@@ -89,15 +71,6 @@ func (h *OrderHandler) GetUserOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, orders)
 }
 
-// @Summary Получить заказ по ID
-// @Description Получить информацию о конкретном заказе
-// @Tags orders
-// @Produce json
-// @Param id path int true "ID заказа"
-// @Success 200 {object} models.Order
-// @Failure 404 {object} gin.H
-// @Router /api/orders/{id} [get]
-// @Security BearerAuth
 func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 	id := c.Param("id")
 	orderID, err := strconv.ParseUint(id, 10, 32)
@@ -114,13 +87,6 @@ func (h *OrderHandler) GetOrderByID(c *gin.Context) {
 	c.JSON(http.StatusOK, order)
 }
 
-// @Summary Получить все заказы
-// @Description Получить список всех заказов (только для админов)
-// @Tags orders
-// @Produce json
-// @Success 200 {array} models.Order
-// @Router /api/orders/admin/all [get]
-// @Security BearerAuth
 func (h *OrderHandler) GetAllOrders(c *gin.Context) {
 	orders, err := h.orderService.GetAllOrders()
 	if err != nil {

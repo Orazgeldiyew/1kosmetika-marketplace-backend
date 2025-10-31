@@ -8,11 +8,11 @@ import (
 	"1kosmetika-marketplace-backend/repositories"
 )
 
-// StartCronJobs — запускает все фоновые задачи
+
 func StartCronJobs() {
 	c := cron.New()
 
-	// 🕛 Ежедневное обновление статистики в 00:00
+
 	_, err := c.AddFunc("0 0 * * *", func() {
 		log.Println("📊 Running daily stats job...")
 
@@ -28,7 +28,7 @@ func StartCronJobs() {
 		log.Println("❌ Failed to schedule daily stats job:", err)
 	}
 
-	// 🕐 Обновление кеша каждый час (пример)
+
 	_, err = c.AddFunc("@hourly", func() {
 		log.Println("♻️ Hourly cache refresh job running...")
 	})

@@ -28,13 +28,13 @@ func NewReviewService(reviewRepo repositories.ReviewRepository, productRepo repo
 }
 
 func (s *reviewService) CreateReview(userID uint, productID uint, rating int, comment string) (*models.Review, error) {
-	// Check if product exists
+
 	_, err := s.productRepo.FindByID(productID)
 	if err != nil {
 		return nil, fmt.Errorf("product not found")
 	}
 
-	// Check if user already reviewed this product
+
 	existingReview, err := s.reviewRepo.FindByUserAndProduct(userID, productID)
 	if err == nil && existingReview != nil {
 		return nil, fmt.Errorf("you have already reviewed this product")
@@ -51,7 +51,7 @@ func (s *reviewService) CreateReview(userID uint, productID uint, rating int, co
 		return nil, fmt.Errorf("failed to create review: %w", err)
 	}
 
-	// Get the created review with relations
+
 	return s.reviewRepo.FindByID(review.ID)
 }
 
@@ -61,7 +61,7 @@ func (s *reviewService) UpdateReview(reviewID uint, userID uint, rating int, com
 		return nil, fmt.Errorf("review not found")
 	}
 
-	// Check if user owns the review
+	
 	if review.UserID != userID {
 		return nil, fmt.Errorf("access denied")
 	}
@@ -82,7 +82,7 @@ func (s *reviewService) DeleteReview(reviewID uint, userID uint) error {
 		return fmt.Errorf("review not found")
 	}
 
-	// Check if user owns the review
+
 	if review.UserID != userID {
 		return fmt.Errorf("access denied")
 	}

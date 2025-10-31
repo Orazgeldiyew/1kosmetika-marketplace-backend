@@ -30,13 +30,13 @@ func (s *favoriteService) GetUserFavorites(userID uint) ([]models.Favorite, erro
 }
 
 func (s *favoriteService) AddFavorite(userID, productID uint) error {
-	// Check if product exists
+
 	_, err := s.productRepo.FindByID(productID)
 	if err != nil {
 		return fmt.Errorf("product not found")
 	}
 
-	// Check if already in favorites
+
 	exists, err := s.favoriteRepo.Exists(userID, productID)
 	if err != nil {
 		return fmt.Errorf("failed to check favorites")
@@ -54,7 +54,7 @@ func (s *favoriteService) AddFavorite(userID, productID uint) error {
 }
 
 func (s *favoriteService) RemoveFavorite(userID, productID uint) error {
-	// Check if exists in favorites
+
 	exists, err := s.favoriteRepo.Exists(userID, productID)
 	if err != nil {
 		return fmt.Errorf("failed to check favorites")

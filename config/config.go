@@ -22,7 +22,7 @@ type Config struct {
 }
 
 func Load() *Config {
-	// Don't hard-fail if .env missing (OK for container/prod)
+
 	_ = godotenv.Load()
 
 	return &Config{

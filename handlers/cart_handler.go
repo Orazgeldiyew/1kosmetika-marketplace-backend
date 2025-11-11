@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"1kosmetika-marketplace-backend/services"
 	"net/http"
 	"strconv"
+
+	"1kosmetika-marketplace-backend/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,8 +34,8 @@ func (h *CartHandler) GetCart(c *gin.Context) {
 
 func (h *CartHandler) AddToCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	var req AddToCartRequest
 
+	var req AddToCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -45,23 +46,24 @@ func (h *CartHandler) AddToCart(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Item added to cart successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Item added to cart"})
 }
 
 func (h *CartHandler) RemoveFromCart(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	itemID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
+
+	id64, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || id64 == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid item id"})
 		return
 	}
+	itemID := uint(id64)
 
-	if err := h.cartService.RemoveFromCart(userID, uint(itemID)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove item from cart"})
+	if err := h.cartService.RemoveFromCart(userID, itemID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Item removed from cart successfully"})
+	c.Status(http.StatusNoContent)
 }
 
 func (h *CartHandler) ClearCart(c *gin.Context) {
@@ -70,6 +72,5 @@ func (h *CartHandler) ClearCart(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear cart"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Cart cleared successfully"})
+	c.Status(http.StatusNoContent)
 }

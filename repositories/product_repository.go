@@ -20,7 +20,7 @@ type ProductRepository interface {
 	GetBrands() ([]string, error)
 }
 
-// ДОБАВЛЯЕМ структуру для фильтров
+
 type ProductFilter struct {
 	Category string  `json:"category"`
 	Brand    string  `json:"brand"`
@@ -79,7 +79,7 @@ func (r *productRepository) FindWithPagination(page, limit int) ([]models.Produc
 		return nil, 0, err
 	}
 	
-	// Get products with pagination
+
 	err := r.db.Limit(limit).Offset(offset).Find(&products).Error
 	
 	return products, total, err

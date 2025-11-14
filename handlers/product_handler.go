@@ -42,19 +42,18 @@ func (h *ProductHandler) GetProductsPaginated(c *gin.Context) {
 		"total":    total,
 		"page":     page,
 		"limit":    limit,
-		"pages":    (total + int64(limit) - 1) / int64(limit), // Calculate total pages
+		"pages":    (total + int64(limit) - 1) / int64(limit), 
 	})
 }
 
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
-	// Parse query parameters
+
 	filter := repositories.ProductFilter{
 		Category: c.Query("category"),
 		Brand:    c.Query("brand"),
 		Search:   c.Query("search"),
 	}
 
-	// Parse price filters
 	if minPriceStr := c.Query("min_price"); minPriceStr != "" {
 		if minPrice, err := strconv.ParseFloat(minPriceStr, 64); err == nil {
 			filter.MinPrice = minPrice

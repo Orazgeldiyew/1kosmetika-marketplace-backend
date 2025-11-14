@@ -1,3 +1,4 @@
+// repositories/cart_repository.go
 package repositories
 
 import (
@@ -10,14 +11,17 @@ type CartRepository interface {
 	FindByUserID(userID uint) (*models.Cart, error)
 	Create(cart *models.Cart) error
 	Update(cart *models.Cart) error
+
 	FindCartItem(cartID, productID uint) (*models.CartItem, error)
-	FindCartItemByID(itemID uint) (*models.CartItem, error) // ДОБАВИТЬ этот метод
+	FindCartItemByID(itemID uint) (*models.CartItem, error)
 	CreateCartItem(item *models.CartItem) error
 	UpdateCartItem(item *models.CartItem) error
 	DeleteCartItem(itemID uint) error
+	DeleteCartItemByProduct(cartID, productID uint) error
+	DeleteCartItemOwnedByUser(userID, itemID uint) (bool, error)
+
 	ClearCart(cartID uint) error
 	GetCartWithItems(userID uint) (*models.Cart, error)
-	DeleteCartItemByProduct(cartID, productID uint) error // ДОБАВИТЬ этот метод
 }
 
 type cartRepository struct {
@@ -54,7 +58,6 @@ func (r *cartRepository) FindCartItem(cartID, productID uint) (*models.CartItem,
 	return &item, nil
 }
 
-
 func (r *cartRepository) FindCartItemByID(itemID uint) (*models.CartItem, error) {
 	var item models.CartItem
 	err := r.db.Preload("Product").First(&item, itemID).Error
@@ -76,9 +79,20 @@ func (r *cartRepository) DeleteCartItem(itemID uint) error {
 	return r.db.Delete(&models.CartItem{}, itemID).Error
 }
 
-
 func (r *cartRepository) DeleteCartItemByProduct(cartID, productID uint) error {
-	return r.db.Where("cart_id = ? AND product_id = ?", cartID, productID).Delete(&models.CartItem{}).Error
+	return r.db.Where("cart_id = ? AND product_id = ?", cartID, productID).
+		Delete(&models.CartItem{}).Error
+}
+
+func (r *cartRepository) DeleteCartItemOwnedByUser(userID, itemID uint) (bool, error) {
+	res := r.db.
+		Where(`id = ? AND cart_id IN (SELECT id FROM carts WHERE user_id = ?)`, itemID, userID).
+		Delete(&models.CartItem{})
+
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected > 0, nil
 }
 
 func (r *cartRepository) ClearCart(cartID uint) error {

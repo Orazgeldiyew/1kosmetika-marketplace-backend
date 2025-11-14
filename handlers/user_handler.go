@@ -28,7 +28,6 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -89,10 +88,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
-
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	
+
 	user, err := h.userService.GetProfile(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -107,7 +105,6 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		"created_at": user.CreatedAt,
 	})
 }
-
 
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	userID := c.Param("id")
@@ -143,10 +140,9 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID := c.Param("id")
-	
+
 	id, err := strconv.ParseUint(userID, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})

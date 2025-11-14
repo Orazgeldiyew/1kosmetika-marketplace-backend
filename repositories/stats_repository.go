@@ -96,12 +96,12 @@ type ProfitStats struct {
 	ProfitMargin float64 `json:"profit_margin"`
 }
 
-// ------- Optional/soft-fail section for traffic (if you don't have logs table) -------
+
 func (r *StatsRepository) GetTrafficStats() (TrafficStats, error) {
 	db := database.DB
 	var stats TrafficStats
 
-	// Soft fallback if tables don't exist: query returns zero without error in many setups
+
 	_ = db.Raw(`SELECT COUNT(*) FROM traffic_logs`).Scan(&stats.TotalVisits).Error
 	_ = db.Raw(`SELECT COUNT(DISTINCT user_id) FROM traffic_logs WHERE user_id IS NOT NULL`).Scan(&stats.UniqueUsers).Error
 	_ = db.Raw(`SELECT COALESCE(AVG(session_duration),0) FROM traffic_logs`).Scan(&stats.AverageSession).Error

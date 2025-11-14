@@ -60,7 +60,7 @@ func main() {
 
 
 	r := gin.Default()
-	r.MaxMultipartMemory = 10 << 20 // 10 МБ для загрузки файлов
+	r.MaxMultipartMemory = 10 << 20 
 	r.Use(middlewares.CORS())
 	r.Static("/static", "./uploads")
 
